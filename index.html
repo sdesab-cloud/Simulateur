@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur de financement — BBS Finance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Droid+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bbs-blue:#014C99;
+  --bbs-gold:#DB9927;
+  --bbs-grey:#73797F;
+  --bbs-light:#F1F1F1;
+  --bbs-line:#dddbd9;
+  --ink:#1c2530;
+  --white:#ffffff;
+  --ok:#2e7d52;
+  --warn:#b3531d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Droid Serif',Georgia,serif;
+  color:var(--ink);
+  background:var(--bbs-light);
+  line-height:1.5;
+}
+h1,h2,h3,h4,label,button,th,.ui{font-family:'Barlow Semi Condensed','Arial Narrow',sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 60px}
+
+/* Header */
+header{
+  background:var(--bbs-blue);
+  color:var(--white);
+  padding:26px 0 22px;
+  border-bottom:4px solid var(--bbs-gold);
+}
+.header-inner{max-width:1180px;margin:0 auto;padding:0 18px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.brand{font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;font-size:34px;letter-spacing:2px}
+.brand span{color:var(--bbs-gold)}
+.brand small{display:block;font-weight:500;font-size:13px;letter-spacing:5px;color:#bcd2ec;margin-top:2px}
+.header-title{text-align:right}
+.header-title .t{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:20px;letter-spacing:.5px}
+.header-title .s{font-size:12px;color:#bcd2ec;font-style:italic}
+.doc-badge{display:inline-block;background:var(--bbs-gold);color:#fff;font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:3px 12px;border-radius:4px;margin-bottom:7px}
+
+/* Cards */
+.card{background:var(--white);border:1px solid var(--bbs-line);border-radius:10px;margin-top:20px;overflow:hidden;box-shadow:0 1px 3px rgba(1,76,153,.05)}
+.card-head{background:var(--bbs-blue);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.card-head h2{font-size:18px;font-weight:600;letter-spacing:.5px}
+.card-head .pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:500}
+.card-body{padding:18px}
+
+/* Loan accent */
+.loan1 .card-head{background:var(--bbs-blue)}
+.loan2 .card-head{background:#0a3d73}
+
+/* Grid of fields */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;font-weight:600;color:var(--bbs-grey);letter-spacing:.4px;text-transform:uppercase}
+.field input,.field select{
+  font-family:'Barlow Semi Condensed',sans-serif;font-size:15px;padding:9px 10px;border:1px solid var(--bbs-line);
+  border-radius:6px;background:#fff;color:var(--ink);width:100%;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--bbs-blue);box-shadow:0 0 0 2px rgba(1,76,153,.12)}
+.field .hint{font-size:11px;color:var(--bbs-grey);font-style:italic}
+
+.subhead{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:var(--bbs-blue);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bbs-line)}
+
+/* toggles */
+.toggle-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.switch{position:relative;display:inline-block;width:46px;height:25px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:var(--bbs-line);transition:.2s;border-radius:25px}
+.slider:before{content:"";position:absolute;height:19px;width:19px;left:3px;bottom:3px;background:#fff;transition:.2s;border-radius:50%}
+input:checked+.slider{background:var(--bbs-gold)}
+input:checked+.slider:before{transform:translateX(21px)}
+.switch-label{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:14px;color:var(--ink)}
+
+.event-block{border:1px dashed var(--bbs-line);border-radius:8px;padding:14px;margin-top:12px;background:#fafbfc}
+.event-block.active{border-color:var(--bbs-gold);background:#fffaf0}
+.event-title{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.event-title .et{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:.4px}
+.event-fields{margin-top:12px}
+.event-fields.hidden{display:none}
+
+/* Buttons */
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+button.btn{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:15px;letter-spacing:.5px;padding:12px 22px;border:none;border-radius:7px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--bbs-gold);color:#fff}
+.btn-primary:hover{background:#c4861f}
+.btn-blue{background:var(--bbs-blue);color:#fff}
+.btn-blue:hover{background:#013e7d}
+.btn-outline{background:#fff;color:var(--bbs-blue);border:1.5px solid var(--bbs-blue)}
+.btn-outline:hover{background:var(--bbs-light)}
+.btn-reset{background:#fff;color:var(--bbs-grey);border:1.5px solid var(--bbs-line);margin-left:auto}
+.btn-reset:hover{background:var(--bbs-light);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Results */
+#results{margin-top:24px}
+.result-summary{width:100%;border-collapse:collapse;margin-bottom:6px;font-family:'Barlow Semi Condensed',sans-serif}
+.result-summary th{background:var(--bbs-blue);color:#fff;font-weight:600;font-size:12.5px;letter-spacing:.4px;padding:10px 8px;text-align:right;border-right:1px solid rgba(255,255,255,.12)}
+.result-summary th:first-child,.result-summary th.lcol{text-align:left}
+.result-summary td{padding:10px 8px;text-align:right;border-bottom:1px solid #eef0f2;font-size:14px;vertical-align:top}
+.result-summary td.namecell{text-align:left;font-weight:600;color:var(--bbs-blue)}
+.result-summary td.lcol{text-align:left}
+.result-summary tr.loan-end td{border-bottom:2px solid var(--bbs-line)}
+.result-summary tr.tmens td{background:#fff8ec}
+.result-summary tr.tmens-first td{border-top:2px solid var(--bbs-gold)}
+.result-summary td.tmens-label{text-align:left;font-weight:700;color:#b3531d;vertical-align:middle}
+.result-summary td .muted{color:var(--bbs-grey);font-style:italic;font-size:12.5px}
+
+.recap{margin-top:18px;border:1px solid var(--bbs-line);border-radius:8px;overflow:hidden}
+.recap h4{font-family:'Barlow Semi Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:.4px;color:#fff;background:var(--bbs-gold);padding:8px 14px}
+.recap-table{width:100%;border-collapse:collapse;font-family:'Barlow Semi Condensed',sans-serif}
+.recap-table th{background:var(--bbs-light);color:var(--bbs-blue);font-size:12px;text-transform:uppercase;letter-spacing:.4px;padding:9px 14px;text-align:right}
+.recap-table th:first-child{text-align:left}
+.recap-table td{padding:9px 14px;border-bottom:1px solid var(--bbs-line);font-size:13.5px;text-align:right}
+.recap-table tr:last-child td{border-bottom:none}
+.recap-table td.rp{text-align:left;font-weight:600;color:var(--bbs-blue)}
+.recap-table tr.cost-total td{background:var(--bbs-light);font-weight:700;border-top:2px solid var(--bbs-blue)}
+
+.warnbox{background:#fff4e6;border:1px solid var(--bbs-gold);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;color:var(--warn);display:flex;gap:10px;align-items:flex-start}
+.warnbox b{font-family:'Barlow Semi Condensed',sans-serif}
+
+.amort-wrap{margin-top:20px}
+.amort-wrap h3{font-family:'Barlow Semi Condensed',sans-serif;color:var(--bbs-blue);font-size:17px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.amort-wrap h3 .tag{font-size:11px;background:var(--bbs-light);color:var(--bbs-grey);padding:2px 10px;border-radius:12px;font-weight:500}
+.tablescroll{max-height:380px;overflow:auto;border:1px solid var(--bbs-line);border-radius:8px}
+table.amort{width:100%;border-collapse:collapse;font-family:'Barlow Semi Condensed',sans-serif;font-size:12.5px}
+table.amort th{position:sticky;top:0;background:var(--bbs-blue);color:#fff;font-weight:600;padding:8px 6px;text-align:right;z-index:1;white-space:nowrap}
+table.amort th:first-child{text-align:center}
+table.amort td{padding:3px 6px;text-align:right;border-bottom:1px solid #eee}
+table.amort td:first-child{text-align:center;color:var(--bbs-grey);font-weight:600}
+table.amort tr:nth-child(even) td{background:#fafbfc}
+table.amort tr.event-row td{background:#fff4e6 !important;font-style:italic;color:var(--warn)}
+table.amort tr.year-sep td{border-top:1.5px solid var(--bbs-line)}
+
+.empty{text-align:center;padding:50px 20px;color:var(--bbs-grey);font-style:italic}
+.footnote{font-size:11.5px;color:var(--bbs-grey);font-style:italic;margin-top:10px;text-align:center}
+.req::after{content:" *";color:var(--bbs-gold)}
+.hidden{display:none!important}
+@media(max-width:640px){.brand{font-size:26px}.header-title{text-align:left}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">BBS FINANCE<small>FINANCEMENT PRO &amp; IMMOBILIER</small></div>
+    <div class="header-title">
+      <div class="doc-badge">Document interne</div>
+      <div class="t">Simulateur de financement</div>
+      <div class="s">Étude indicative — hors frais de dossier et garantie</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- LISSAGE -->
+  <div class="card" id="lissageCard" style="margin-top:22px">
+    <div class="card-body" style="padding:14px 18px">
+      <div class="toggle-row">
+        <label class="switch"><input type="checkbox" id="enableLoan2"><span class="slider"></span></label>
+        <span class="switch-label">Activer un 2ᵉ prêt</span>
+        <span style="width:24px"></span>
+        <label class="switch"><input type="checkbox" id="enableLissage" disabled><span class="slider"></span></label>
+        <span class="switch-label">Lisser les 2 prêts (mensualité totale constante)</span>
+      </div>
+      <div id="lissageFields" class="event-fields hidden" style="margin-top:14px">
+        <div class="grid">
+          <div class="field">
+            <label class="ui">Mensualité totale cible (HA)</label>
+            <input type="number" id="lissTarget" placeholder="ex : 1200" step="10">
+            <span class="hint">Le Prêt 1 est lissé sur le Prêt 2. Durée du Prêt 1 recalculée.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRÊT 1 -->
+  <div class="card loan1" id="card1">
+    <div class="card-head"><h2 id="title1">Prêt 1</h2><span class="pill" id="pill1">Prêt classique</span></div>
+    <div class="card-body" id="body1"></div>
+  </div>
+
+  <!-- PRÊT 2 -->
+  <div class="card loan2" id="card2" style="display:none">
+    <div class="card-head"><h2 id="title2">Prêt 2</h2><span class="pill" id="pill2">Prêt classique</span></div>
+    <div class="card-body" id="body2"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="calcBtn">Calculer la simulation</button>
+    <button class="btn btn-blue" id="pdfSimBtn" disabled>Exporter la simulation (PDF)</button>
+    <button class="btn btn-outline" id="pdfAmortBtn" disabled>Exporter les tableaux d'amortissement (PDF)</button>
+    <button class="btn btn-reset" id="resetBtn">Réinitialiser</button>
+  </div>
+
+  <div id="results">
+    <div class="empty">Renseigne les paramètres puis lance le calcul pour afficher la synthèse et les tableaux d'amortissement.</div>
+  </div>
+
+  <p class="footnote">Note : Ces informations sont non-contractuelles. Seuls les établissements bancaires sont en mesure de publier de vraies offres.</p>
+</div>
+
+<script>
+/* ============ MOTEUR DE CALCUL ============ */
+const MAX = {relais:24, classique:360};
+
+function pmt(capital, annualRate, months){
+  const i = annualRate/100/12;
+  if(months<=0) return 0;
+  if(i===0) return capital/months;
+  return capital*i/(1-Math.pow(1+i,-months));
+}
+function nper(capital, annualRate, payment){
+  const i = annualRate/100/12;
+  if(i===0) return Math.ceil(capital/payment);
+  if(payment<=capital*i) return Infinity;
+  return Math.ceil(-Math.log(1-capital*i/payment)/Math.log(1+i));
+}
+function insMonthly(loan, crd){
+  if(!loan.insRate) return 0;
+  const base = loan.insBase==='crd' ? crd : loan.capital;
+  return base*loan.insRate/100/12;
+}
+/* Simulation inversée : montant empruntable à partir d'une mensualité cible (HA) */
+function capitalFromPayment(M, annualRate, months, type){
+  const i=annualRate/100/12;
+  if(type==='relais') return i>0 ? M/i : 0;       // in fine : M = C*i
+  if(i===0) return M*months;
+  return M*(1-Math.pow(1+i,-months))/i;            // valeur actuelle de l'annuité
+}
+
+/* Construit le tableau d'amortissement mois par mois */
+function buildSchedule(loan){
+  const warnings=[];
+  const i = loan.rate/100/12;
+  let crd = loan.capital;
+  const rows=[];
+
+  /* ---- PRÊT RELAIS : in fine ---- */
+  if(loan.type==='relais'){
+    const total = loan.differe.type==='total';
+    for(let m=1;m<=loan.months;m++){
+      const interest = crd*i;
+      let payHA, capPart=0;
+      if(total){ crd+=interest; payHA=0; }
+      else { payHA=interest; }
+      if(m===loan.months){ capPart=crd; payHA+=crd; }
+      const ins = insMonthly(loan,crd);
+      const crdEnd = m===loan.months?0:crd;
+      rows.push({m,interest,capital:capPart,payHA,ins,payAC:payHA+ins,crd:Math.max(crdEnd,0),note:m===loan.months?'Remboursement du capital':(total?'Différé total':'Intérêts seuls')});
+      if(m===loan.months) crd=0;
+    }
+    return {rows,warnings};
+  }
+
+  /* ---- PRÊT CLASSIQUE : amortissable ---- */
+  const dType = loan.differe.type;
+  const dM = dType!=='none' ? (loan.differe.months||0) : 0;
+
+  // Phase différé
+  for(let m=1;m<=dM;m++){
+    const interest = crd*i;
+    let payHA=0, note='';
+    if(dType==='partiel'){ payHA=interest; note='Différé partiel'; }
+    else { crd+=interest; payHA=0; note='Différé total'; }
+    const ins=insMonthly(loan,crd);
+    rows.push({m,interest,capital:0,payHA,ins,payAC:payHA+ins,crd,note});
+  }
+
+  // Mensualité de base après différé
+  let remaining = loan.months - dM;
+  let M = loan.fixedPayment!=null ? loan.fixedPayment : pmt(crd, loan.rate, remaining);
+
+  if(M <= crd*i + 0.01){
+    warnings.push("La mensualité ne couvre pas les intérêts du Prêt « "+loan.name+" » : le capital ne s'amortit pas. Vérifie le montant / la durée / le taux.");
+    return {rows,warnings};
+  }
+
+  // events triés
+  const evs = (loan.events||[]).slice();
+  const findEv = (type,month)=>evs.find(e=>e.type===type && e.month===month);
+
+  let m = dM;
+  let guard=0;
+  let plannedEnd = loan.months; // pour recalcul "baisse mensualité"
+  while(crd>0.01 && guard<2000){
+    guard++; m++;
+
+    // Report d'échéance (sauf assurance) : intérêts capitalisés
+    const rep = findEv('report', m);
+    if(rep && rep.months>0){
+      for(let r=0;r<rep.months;r++){
+        const interest=crd*i; crd+=interest;
+        const ins=insMonthly(loan,crd);
+        rows.push({m,interest,capital:0,payHA:0,ins,payAC:ins,crd,note:'Report d\'échéance'});
+        m++;
+      }
+      m--;
+      plannedEnd += rep.months;
+      continue;
+    }
+
+    // Remboursement anticipé partiel
+    const ra = findEv('rembAnticipe', m);
+    let extra=0;
+    if(ra && ra.amount>0){
+      extra = Math.min(ra.amount, crd);
+      crd -= extra;
+      if(crd<=0.01){
+        rows.push({m,interest:0,capital:extra,payHA:extra,ins:insMonthly(loan,0),payAC:extra,crd:0,extra,note:'Remb. anticipé — solde'});
+        crd=0; break;
+      }
+      if(ra.mode==='mensualite'){
+        const monthsLeft = plannedEnd - m + 1;
+        M = pmt(crd, loan.rate, monthsLeft);
+      } // mode 'duree' : M inchangée, la durée se raccourcit
+    }
+
+    // Modulation (hausse/baisse de mensualité, ou allongement de durée) à partir de ce mois
+    const mod = findEv('modulation', m);
+    if(mod){
+      if(mod.mode==='extend'){
+        const remOrig = plannedEnd - m + 1;
+        M = pmt(crd, loan.rate, remOrig + mod.extend);
+        plannedEnd += mod.extend;
+      } else if(mod.newPayment>0){
+        M = mod.newPayment;
+      }
+      if(M <= crd*i+0.01){
+        warnings.push("La mensualité modulée du Prêt « "+loan.name+" » ne couvre plus les intérêts au mois "+m+".");
+        break;
+      }
+    }
+
+    // Échéance normale
+    const interest = crd*i;
+    let capPart = M - interest;
+    if(capPart>crd) capPart=crd;
+    const payHA = interest + capPart + extra;
+    crd -= capPart;
+    const ins = insMonthly(loan,crd);
+    let note='';
+    if(extra>0) note='Remb. anticipé '+(ra.mode==='mensualite'?'(baisse mensualité)':'(baisse durée)');
+    else if(mod) note=(mod.mode==='extend'?'Allongement +'+mod.extend+' mois':'Mensualité modulée');
+    rows.push({m,interest,capital:capPart+extra,payHA,ins,payAC:payHA+ins,crd:Math.max(crd,0),extra,note});
+    if(crd<=0.01){crd=0;break;}
+  }
+  return {rows,warnings};
+}
+
+/* Synthèse d'un prêt à partir du planning */
+function summarize(loan, sched){
+  const rows=sched.rows;
+  const months=rows.length;
+  const totalInterest = rows.reduce((s,r)=>s+r.interest,0);
+  const totalIns = rows.reduce((s,r)=>s+r.ins,0);
+  // mensualité "principale" = 1ère échéance hors différé/report/remb
+  let mainHA=0, mainAC=0;
+  const main = rows.find(r=>r.capital>0 && !/Différé|Report/.test(r.note||''));
+  if(main){ mainHA=main.payHA; mainAC=main.payAC; }
+  else if(rows.length){ mainHA=rows[0].payHA; mainAC=rows[0].payAC; }
+  // paliers : valeurs distinctes de payHA hors événements ponctuels
+  const levels=[...new Set(rows.filter(r=>r.capital>0).map(r=>Math.round(r.payHA)))];
+  const variable = levels.length>1;
+  return {months,totalInterest,totalIns,mainHA,mainAC,variable,hasIns:!!loan.insRate};
+}
+
+/* ============ FORMATAGE ============ */
+const eur = v => (Math.round(v*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const eur0 = v => Math.round(v).toLocaleString('fr-FR')+' €';
+/* Versions PDF : remplace l'espace fine insécable (illisible par jsPDF) par un espace normal */
+const eurPdf = v => eur(v).replace(/[\u202F\u00A0]/g,' ');
+const eur0Pdf = v => eur0(v).replace(/[\u202F\u00A0]/g,' ');
+const fixSp = rows => rows.map(r=>r.map(c=>typeof c==='string'?c.replace(/[\u202F\u00A0]/g,' '):c));
+function durTxt(m){const y=Math.floor(m/12),mo=m%12;let s='';if(y)s+=y+' an'+(y>1?'s':'');if(mo)s+=(s?' ':'')+mo+' mois';return s||'0 mois';}
+
+/* ============ UI : génération des champs d'un prêt ============ */
+function loanFieldsHTML(idx){
+  return `
+  <div class="grid">
+    <div class="field">
+      <label class="ui req">Nom du prêt</label>
+      <input type="text" id="name${idx}" value="Prêt ${idx}" placeholder="ex : Acquisition RP">
+    </div>
+    <div class="field">
+      <label class="ui">Type de prêt</label>
+      <select id="type${idx}">
+        <option value="classique">Prêt classique</option>
+        <option value="relais">Prêt relais (in fine)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="ui">Sens du calcul</label>
+      <select id="calcMode${idx}">
+        <option value="direct">Montant connu → calcule la mensualité</option>
+        <option value="inverse">Mensualité connue → calcule le montant</option>
+      </select>
+    </div>
+    <div class="field" id="capitalWrap${idx}">
+      <label class="ui req">Montant</label>
+      <input type="number" id="capital${idx}" placeholder="ex : 200000" step="1000">
+    </div>
+    <div class="field hidden" id="targetWrap${idx}">
+      <label class="ui req">Mensualité cible (HA)</label>
+      <input type="number" id="targetPay${idx}" placeholder="ex : 1100" step="10">
+      <span class="hint">Le montant empruntable est calculé</span>
+    </div>
+    <div class="field">
+      <label class="ui req">Durée (mois)</label>
+      <input type="number" id="months${idx}" placeholder="ex : 240" step="1">
+    </div>
+    <div class="field">
+      <label class="ui req">Taux d'intérêt annuel (%)</label>
+      <input type="number" id="rate${idx}" placeholder="ex : 3.45" step="0.01">
+    </div>
+    <div class="field">
+      <label class="ui">Taux d'assurance annuel (%)</label>
+      <input type="number" id="insRate${idx}" placeholder="optionnel — ex : 0.34" step="0.01">
+      <span class="hint">Laisser vide si inconnu</span>
+    </div>
+    <div class="field">
+      <label class="ui">Assurance calculée sur</label>
+      <select id="insBase${idx}">
+        <option value="initial">Capital initial (cotisation constante)</option>
+        <option value="crd">Capital restant dû (cotisation dégressive)</option>
+      </select>
+      <span class="hint">S'applique uniquement à l'assurance</span>
+    </div>
+  </div>
+
+  <div class="subhead">Différé</div>
+  <div class="grid">
+    <div class="field">
+      <label class="ui">Type de différé</label>
+      <select id="diffType${idx}">
+        <option value="none">Aucun</option>
+        <option value="partiel">Différé partiel (intérêts seuls)</option>
+        <option value="total">Différé total (intérêts capitalisés)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="ui">Durée du différé (mois)</label>
+      <input type="number" id="diffMonths${idx}" placeholder="0" step="1" value="0">
+    </div>
+  </div>
+
+  <div class="subhead">Événements en cours de prêt</div>
+
+  <div class="event-block" id="raBlock${idx}">
+    <div class="event-title">
+      <label class="switch"><input type="checkbox" id="raOn${idx}"><span class="slider"></span></label>
+      <span class="et">Remboursement anticipé partiel</span>
+    </div>
+    <div class="event-fields hidden" id="raFields${idx}">
+      <div class="grid">
+        <div class="field"><label class="ui">Au mois n°</label><input type="number" id="raMonth${idx}" step="1" placeholder="ex : 60"></div>
+        <div class="field"><label class="ui">Montant remboursé</label><input type="number" id="raAmount${idx}" step="500" placeholder="ex : 20000"></div>
+        <div class="field"><label class="ui">Effet</label>
+          <select id="raMode${idx}">
+            <option value="mensualite">Baisse de la mensualité (durée conservée)</option>
+            <option value="duree">Baisse de la durée (mensualité conservée)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-block" id="repBlock${idx}">
+    <div class="event-title">
+      <label class="switch"><input type="checkbox" id="repOn${idx}"><span class="slider"></span></label>
+      <span class="et">Report d'échéance (sauf assurance)</span>
+    </div>
+    <div class="event-fields hidden" id="repFields${idx}">
+      <div class="grid">
+        <div class="field"><label class="ui">À partir du mois n°</label><input type="number" id="repMonth${idx}" step="1" placeholder="ex : 36"></div>
+        <div class="field"><label class="ui">Nombre de mois (0 à 12)</label><input type="number" id="repMonths${idx}" step="1" min="0" max="12" placeholder="ex : 3"></div>
+      </div>
+      <span class="hint" style="margin-top:6px;display:block">Pendant le report : seule l'assurance est payée, les intérêts sont capitalisés et la durée s'allonge.</span>
+    </div>
+  </div>
+
+  <div class="event-block" id="modBlock${idx}">
+    <div class="event-title">
+      <label class="switch"><input type="checkbox" id="modOn${idx}"><span class="slider"></span></label>
+      <span class="et">Modulation de mensualité (hausse / baisse)</span>
+    </div>
+    <div class="event-fields hidden" id="modFields${idx}">
+      <div class="grid">
+        <div class="field"><label class="ui">À partir du mois n°</label><input type="number" id="modMonth${idx}" step="1" placeholder="ex : 48"></div>
+        <div class="field"><label class="ui">Méthode</label>
+          <select id="modMode${idx}">
+            <option value="amount">Saisir une nouvelle mensualité</option>
+            <option value="extend">Allonger la durée (mensualité calculée)</option>
+          </select>
+        </div>
+        <div class="field" id="modAmountWrap${idx}"><label class="ui">Nouvelle mensualité (HA)</label><input type="number" id="modAmount${idx}" step="10" placeholder="ex : 1100"></div>
+        <div class="field hidden" id="modExtendWrap${idx}"><label class="ui">Allongement de la durée (mois)</label>
+          <input type="number" id="modExtend${idx}" step="1" min="0" max="60" placeholder="ex : 24">
+        </div>
+      </div>
+      <span class="hint" style="margin-top:6px;display:block">Coût et durée recalculés automatiquement. L'allongement fait baisser la mensualité.</span>
+    </div>
+  </div>
+  `;
+}
+
+/* injecter les champs */
+document.getElementById('body1').innerHTML = loanFieldsHTML(1);
+document.getElementById('body2').innerHTML = loanFieldsHTML(2);
+
+/* ============ INTERACTIONS UI ============ */
+function wireLoan(idx){
+  const typeSel=document.getElementById('type'+idx);
+  const monthsIn=document.getElementById('months'+idx);
+  const pill=document.getElementById('pill'+idx);
+  function updType(){
+    const t=typeSel.value;
+    monthsIn.max=MAX[t]; // contrainte interne, non affichée
+    pill.textContent = t==='relais'?'Prêt relais':'Prêt classique';
+  }
+  typeSel.addEventListener('change',updType); updType();
+
+  // sens du calcul : montant <-> mensualité cible
+  const calcMode=document.getElementById('calcMode'+idx);
+  const capWrap=document.getElementById('capitalWrap'+idx);
+  const tgtWrap=document.getElementById('targetWrap'+idx);
+  const updCalc=()=>{const inv=calcMode.value==='inverse';capWrap.classList.toggle('hidden',inv);tgtWrap.classList.toggle('hidden',!inv);};
+  calcMode.addEventListener('change',updCalc);updCalc();
+
+  // event toggles
+  [['raOn','raFields'],['repOn','repFields'],['modOn','modFields']].forEach(([on,f])=>{
+    const cb=document.getElementById(on+idx), fld=document.getElementById(f+idx), blk=fld.closest('.event-block');
+    cb.addEventListener('change',()=>{fld.classList.toggle('hidden',!cb.checked);blk.classList.toggle('active',cb.checked);});
+  });
+  // titre prêt -> card head
+  const nameIn=document.getElementById('name'+idx);
+  nameIn.addEventListener('input',()=>{document.getElementById('title'+idx).textContent=nameIn.value||('Prêt '+idx);});
+
+  // modulation : basculer entre saisie mensualité et allongement durée
+  const modMode=document.getElementById('modMode'+idx);
+  if(modMode){
+    const aw=document.getElementById('modAmountWrap'+idx), ew=document.getElementById('modExtendWrap'+idx);
+    const upd=()=>{const ext=modMode.value==='extend';aw.classList.toggle('hidden',ext);ew.classList.toggle('hidden',!ext);};
+    modMode.addEventListener('change',upd);upd();
+  }
+}
+wireLoan(1); wireLoan(2);
+
+// activer prêt 2 + lissage
+const enable2=document.getElementById('enableLoan2');
+const enableLiss=document.getElementById('enableLissage');
+const lissFields=document.getElementById('lissageFields');
+enable2.addEventListener('change',()=>{
+  document.getElementById('card2').style.display = enable2.checked?'block':'none';
+  enableLiss.disabled = !enable2.checked;
+  if(!enable2.checked){enableLiss.checked=false;lissFields.classList.add('hidden');}
+});
+enableLiss.addEventListener('change',()=>{
+  lissFields.classList.toggle('hidden',!enableLiss.checked);
+});
+
+/* ============ LECTURE DES CHAMPS ============ */
+function readLoan(idx){
+  const v=id=>document.getElementById(id+idx).value;
+  const num=id=>parseFloat(v(id))||0;
+  const reverse = v('calcMode')==='inverse';
+  const loan={
+    name: v('name')||('Prêt '+idx),
+    type: v('type'),
+    capital: num('capital'),
+    months: Math.round(num('months')),
+    rate: num('rate'),
+    insRate: parseFloat(v('insRate'))||0,
+    insBase: v('insBase'),
+    differe:{type:v('diffType'), months:Math.round(num('diffMonths'))},
+    events:[], fixedPayment:null,
+    reverse, targetPay: num('targetPay')
+  };
+  if(reverse && loan.targetPay>0 && loan.months>0){
+    loan.capital = capitalFromPayment(loan.targetPay, loan.rate, loan.months, loan.type);
+  }
+  if(document.getElementById('raOn'+idx).checked){
+    loan.events.push({type:'rembAnticipe',month:Math.round(num('raMonth')),amount:num('raAmount'),mode:v('raMode')});
+  }
+  if(document.getElementById('repOn'+idx).checked){
+    let mo=Math.round(num('repMonths')); mo=Math.max(0,Math.min(12,mo));
+    loan.events.push({type:'report',month:Math.round(num('repMonth')),months:mo});
+  }
+  if(document.getElementById('modOn'+idx).checked){
+    if(v('modMode')==='extend'){
+      loan.events.push({type:'modulation',month:Math.round(num('modMonth')),mode:'extend',extend:Math.min(60,Math.max(0,Math.round(num('modExtend'))))});
+    } else {
+      loan.events.push({type:'modulation',month:Math.round(num('modMonth')),mode:'amount',newPayment:num('modAmount')});
+    }
+  }
+  return loan;
+}
+
+function validate(loan){
+  const e=[];
+  if(loan.reverse){
+    if(!loan.targetPay||loan.targetPay<=0) e.push('Mensualité cible manquante pour « '+loan.name+' ».');
+  } else {
+    if(!loan.capital||loan.capital<=0) e.push('Montant manquant pour « '+loan.name+' ».');
+  }
+  if(!loan.months||loan.months<=0) e.push('Durée manquante pour « '+loan.name+' ».');
+  if(loan.months>MAX[loan.type]) e.push('Durée du « '+loan.name+' » supérieure au maximum autorisé ('+MAX[loan.type]+' mois).');
+  if(loan.rate<0) e.push('Taux invalide pour « '+loan.name+' ».');
+  return e;
+}
+
+/* ============ CALCUL ============ */
+let lastResults=null;
+
+document.getElementById('calcBtn').addEventListener('click',()=>{
+  const loans=[readLoan(1)];
+  if(enable2.checked) loans.push(readLoan(2));
+
+  let errors=[];
+  loans.forEach(l=>errors.push(...validate(l)));
+  const warnings=[];
+
+  // Lissage
+  if(enable2.checked && enableLiss.checked){
+    const target=parseFloat(document.getElementById('lissTarget').value)||0;
+    if(target<=0) errors.push('Renseigne la mensualité totale cible pour le lissage.');
+    else if(errors.length===0){
+      const l1=loans[0], l2=loans[1];
+      const P2=pmt(l2.capital,l2.rate,l2.months);
+      const P1a=target-P2;
+      if(P1a<=l1.capital*(l1.rate/100/12)){
+        errors.push('Lissage impossible : la mensualité cible ('+eur0(target)+') est trop faible pour couvrir les intérêts du Prêt 1 sur la 1ʳᵉ phase.');
+      }else{
+        l1.fixedPayment=P1a;
+        l1.events.push({type:'modulation',month:l2.months+1,newPayment:target});
+        warnings.push('Lissage actif : le « '+l1.name+' » paie '+eur(P1a)+'/mois pendant '+l2.months+' mois (durée du Prêt 2), puis '+eur(target)+'/mois. Sa durée est recalculée.');
+      }
+    }
+  }
+
+  const res=document.getElementById('results');
+  if(errors.length){
+    res.innerHTML='<div class="warnbox"><b>⚠</b><div>'+errors.map(e=>'• '+e).join('<br>')+'</div></div>';
+    setPdf(false); return;
+  }
+
+  const computed=loans.map(l=>{
+    const sched=buildSchedule(l);
+    warnings.push(...sched.warnings);
+    return {loan:l, sched, sum:summarize(l,sched)};
+  });
+  lastResults=computed;
+  renderResults(computed,warnings);
+  setPdf(true);
+});
+
+function setPdf(on){
+  document.getElementById('pdfSimBtn').disabled=!on;
+  document.getElementById('pdfAmortBtn').disabled=!on;
+}
+
+/* Réinitialisation complète pour une nouvelle simulation */
+function resetAll(){
+  document.querySelectorAll('#body1 input, #body2 input').forEach(el=>{
+    if(el.type==='checkbox') el.checked=false; else el.value='';
+  });
+  document.querySelectorAll('#body1 select, #body2 select').forEach(el=>{ el.selectedIndex=0; });
+  ['1','2'].forEach(idx=>{
+    document.getElementById('name'+idx).value='Prêt '+idx;
+    document.getElementById('title'+idx).textContent='Prêt '+idx;
+    document.getElementById('diffMonths'+idx).value='0';
+    document.getElementById('pill'+idx).textContent='Prêt classique';
+    document.getElementById('capitalWrap'+idx).classList.remove('hidden');
+    document.getElementById('targetWrap'+idx).classList.add('hidden');
+    document.getElementById('modAmountWrap'+idx).classList.remove('hidden');
+    document.getElementById('modExtendWrap'+idx).classList.add('hidden');
+  });
+  document.querySelectorAll('.event-fields').forEach(f=>f.classList.add('hidden'));
+  document.querySelectorAll('.event-block').forEach(b=>b.classList.remove('active'));
+  enable2.checked=false; document.getElementById('card2').style.display='none';
+  enableLiss.checked=false; enableLiss.disabled=true; lissFields.classList.add('hidden');
+  document.getElementById('lissTarget').value='';
+  lastResults=null; setPdf(false);
+  document.getElementById('results').innerHTML='<div class="empty">Renseigne les paramètres puis lance le calcul pour afficher la synthèse et les tableaux d\'amortissement.</div>';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(confirm('Réinitialiser la simulation ? Toutes les données saisies seront effacées.')) resetAll();
+});
+
+/* ============ AFFICHAGE RÉSULTATS ============ */
+function renderResults(computed,warnings){
+  let html='';
+  if(warnings.length){
+    html+='<div class="warnbox"><b>ℹ</b><div>'+warnings.map(w=>'• '+w).join('<br>')+'</div></div>';
+  }
+  const anyIns=computed.some(c=>c.sum.hasIns);
+
+  // Tableau bleu : montant / durée / taux + détail des mensualités par phase
+  html+='<table class="result-summary"><thead><tr>'+
+    '<th>Prêt</th><th>Montant</th><th>Durée</th><th>Taux</th>'+
+    '<th class="lcol">Période</th><th>Mensualité HA</th>'+
+    (anyIns?'<th>Mensualité AC</th>':'')+
+    '</tr></thead><tbody>';
+  computed.forEach(c=>{
+    const l=c.loan, s=c.sum;
+    const ph=phaseLines(l,c.sched.rows);
+    ph.forEach((p,k)=>{
+      html+='<tr'+(k===ph.length-1?' class="loan-end"':'')+'>';
+      if(k===0){
+        html+='<td class="namecell" rowspan="'+ph.length+'">'+l.name+'<br><span class="muted">'+(l.type==='relais'?'Relais':'Classique')+(l.reverse?' · montant calculé':'')+'</span></td>';
+        html+='<td rowspan="'+ph.length+'">'+eur0(l.capital)+'</td>';
+        html+='<td rowspan="'+ph.length+'">'+durTxt(s.months)+'</td>';
+        html+='<td rowspan="'+ph.length+'">'+l.rate.toLocaleString('fr-FR')+' %'+(l.insRate?'<br><span class="muted">ass. '+l.insRate.toLocaleString('fr-FR')+' %</span>':'')+'</td>';
+      }
+      html+='<td class="lcol">'+p.per+'<br><span class="muted">'+p.lab+(p.sub?' · '+p.sub:'')+'</span></td>';
+      html+='<td>'+p.haTxt+'</td>';
+      if(anyIns) html+='<td>'+(p.acTxt||'—')+'</td>';
+      html+='</tr>';
+    });
+  });
+  // Total des mensualités cumulées (si plusieurs prêts)
+  if(computed.length>1){
+    const segs=combinedMensualites(computed);
+    segs.forEach((sg,k)=>{
+      html+='<tr class="tmens'+(k===0?' tmens-first':'')+'">';
+      if(k===0) html+='<td class="tmens-label" colspan="4" rowspan="'+segs.length+'">Total mensualités<br><span class="muted">tous prêts</span></td>';
+      html+='<td class="lcol">Mois '+sg.m1+(sg.m1===sg.m2?'':' à '+sg.m2)+'</td>';
+      html+='<td>'+eur(sg.ha)+'</td>';
+      if(anyIns) html+='<td>'+eur(sg.ac)+'</td>';
+      html+='</tr>';
+    });
+  }
+  html+='</tbody></table>';
+
+  // Récapitulatif coût total en dessous
+  html+='<div class="recap"><h4>Coût total'+(computed.length>1?' par prêt':'')+'</h4><table class="recap-table"><thead><tr>'+
+    '<th>Prêt</th><th>Coût du crédit (HA)</th>'+(anyIns?'<th>Coût de l\'assurance</th>':'')+'<th>Total payé</th>'+
+    '</tr></thead><tbody>';
+  let tC=0,tI=0,tP=0;
+  computed.forEach(c=>{
+    const s=c.sum; const tp=c.sched.rows.reduce((a,r)=>a+r.payAC,0);
+    tC+=s.totalInterest; tI+=s.totalIns; tP+=tp;
+    html+='<tr><td class="rp">'+c.loan.name+'</td><td>'+eur(s.totalInterest)+'</td>'+
+      (anyIns?'<td>'+(s.hasIns?eur(s.totalIns):'—')+'</td>':'')+'<td>'+eur(tp)+'</td></tr>';
+  });
+  if(computed.length>1){
+    html+='<tr class="cost-total"><td class="rp">TOTAL</td><td>'+eur(tC)+'</td>'+
+      (anyIns?'<td>'+eur(tI)+'</td>':'')+'<td>'+eur(tP)+'</td></tr>';
+  }
+  html+='</tbody></table></div>';
+
+  // Tableaux d'amortissement
+  computed.forEach(c=>{ html+=amortHTML(c); });
+
+  document.getElementById('results').innerHTML=html;
+}
+
+/* Décompose le planning en phases lisibles (différé, paliers, lissage, report, remb.) */
+function buildPhases(loan, rows){
+  const segs=[]; let i=0;
+  while(i<rows.length){
+    const note=rows[i].note||'';
+    if(/Report/.test(note)){
+      let j=i; while(j<rows.length && /Report/.test(rows[j].note||'')) j++;
+      segs.push({type:'report', m1:rows[i].m, m2:rows[j-1].m, ins:rows[i].ins}); i=j; continue;
+    }
+    if(/Remb\. anticipé/.test(note)){
+      segs.push({type:'remb', m:rows[i].m, note}); i++; continue;
+    }
+    if(/Différé/.test(note)){
+      const sig=note; let j=i; while(j<rows.length && (rows[j].note||'')===sig) j++;
+      segs.push({type:'differe', m1:rows[i].m, m2:rows[j-1].m, pay:rows[i].payHA, ins:rows[i].ins, label:sig}); i=j; continue;
+    }
+    // palier d'amortissement : regroupe les mois à mensualité HA identique (à l'euro près)
+    const pay=Math.round(rows[i].payHA); const nt=rows[i].note||'';
+    let j=i; while(j<rows.length){
+      const nn=rows[j].note||'';
+      if(/Report|Remb\. anticipé|Différé/.test(nn)) break;
+      if(Math.round(rows[j].payHA)!==pay) break;
+      j++;
+    }
+    segs.push({type:'palier', m1:rows[i].m, m2:rows[j-1].m, pay:rows[i].payHA, ins:rows[i].ins, payAC:rows[i].payAC, note:nt}); i=j;
+  }
+  return segs;
+}
+/* Cumul des mensualités de tous les prêts, mois par mois, regroupé par palier commun
+   (hors remboursements anticipés ponctuels) */
+function combinedMensualites(computed){
+  const maxLen=Math.max(...computed.map(c=>c.sched.rows.length));
+  const totHA=[], totAC=[];
+  for(let i=0;i<maxLen;i++){
+    let ha=0, ac=0;
+    computed.forEach(c=>{
+      const r=c.sched.rows[i];
+      if(r){ const ex=r.extra||0; ha+=(r.payHA-ex); ac+=(r.payAC-ex); }
+    });
+    totHA.push(ha); totAC.push(ac);
+  }
+  const segs=[]; let i=0;
+  while(i<maxLen){
+    const ha=Math.round(totHA[i]), ac=Math.round(totAC[i]);
+    let j=i; while(j<maxLen && Math.round(totHA[j])===ha && Math.round(totAC[j])===ac) j++;
+    segs.push({m1:i+1, m2:j, ha:totHA[i], ac:totAC[i]}); i=j;
+  }
+  return segs;
+}
+
+function phaseLines(loan, rows){
+  const segs=buildPhases(loan,rows); const hasIns=loan.insRate>0; const out=[];
+  segs.forEach(s=>{
+    const per = s.m1===s.m2 ? ('Mois '+s.m1) : ('Mois '+s.m1+' à '+s.m2);
+    if(s.type==='differe'){
+      const tot=/total/i.test(s.label);
+      out.push({per, lab: tot?'Différé total':'Différé partiel', sub: tot?'intérêts capitalisés':'intérêts seuls',
+                haTxt: tot?'—':eur(s.pay), acTxt: hasIns?eur(tot?s.ins:s.pay+s.ins):'—'});
+    } else if(s.type==='report'){
+      out.push({per, lab:'Report d\'échéance', sub:'sauf assurance',
+                haTxt:'—', acTxt:hasIns?eur(s.ins):'—'});
+    } else if(s.type==='remb'){
+      out.push({per, lab:'Remboursement anticipé', sub:s.note.replace('Remb. anticipé ','').replace(/[()]/g,''),
+                haTxt:'—', acTxt:'—'});
+    } else {
+      let lab='Échéance', sub='';
+      if(loan.type==='relais' && /Intérêts seuls/.test(s.note)){lab='Intérêts seuls';}
+      else if(loan.type==='relais' && s.m1===s.m2 && s.m1===rows.length){lab='Capital in fine';}
+      out.push({per, lab, sub, haTxt:eur(s.pay), acTxt:hasIns?eur(s.payAC):'—'});
+    }
+  });
+  return out;
+}
+
+function amortHTML(c){
+  const l=c.loan, rows=c.sched.rows;
+  const hasIns=l.insRate>0;
+  const totInt=rows.reduce((s,r)=>s+r.interest,0);
+  const totIns=rows.reduce((s,r)=>s+r.ins,0);
+  const totPaid=rows.reduce((s,r)=>s+r.payAC,0);
+  let h='<div class="amort-wrap"><h3>Tableau d\'amortissement — '+l.name+' <span class="tag">'+rows.length+' échéances</span></h3>';
+  h+='<div class="tablescroll"><table class="amort"><thead><tr>'+
+    '<th>N°</th><th>Mensualité HA</th><th>Intérêts</th><th>Capital amorti</th>'+
+    (hasIns?'<th>Assurance</th><th>Mensualité AC</th>':'')+
+    '<th>Capital restant dû</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const ev = r.note && r.note!=='';
+    h+='<tr class="'+(ev?'event-row':'')+(r.m%12===0?' year-sep':'')+'">'+
+      '<td>'+r.m+'</td>'+
+      '<td>'+eur(r.payHA)+'</td>'+
+      '<td>'+eur(r.interest)+'</td>'+
+      '<td>'+eur(r.capital)+'</td>'+
+      (hasIns?'<td>'+eur(r.ins)+'</td><td>'+eur(r.payAC)+'</td>':'')+
+      '<td>'+eur(r.crd)+'</td>'+
+    '</tr>';
+  });
+  const span = hasIns?7:5;
+  h+='</tbody><tfoot><tr style="background:var(--bbs-light);font-weight:700">'+
+     '<td colspan="'+span+'" style="text-align:left;color:var(--bbs-blue);padding:8px 6px">'+
+     'Coût total du crédit (HA) : '+eur(totInt)+(hasIns?' &nbsp;·&nbsp; Coût total de l\'assurance : '+eur(totIns):'')+' &nbsp;·&nbsp; Total payé : '+eur(totPaid)+
+     '</td></tr></tfoot>';
+  h+='</table></div></div>';
+  return h;
+}
+
+/* ============ EXPORT PDF ============ */
+function pdfHeader(doc,sub){
+  const w=doc.internal.pageSize.getWidth();
+  doc.setFillColor(1,76,153); doc.rect(0,0,w,26,'F');
+  doc.setFillColor(219,153,39); doc.rect(0,26,w,1.5,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(17);
+  doc.text('BBS FINANCE',14,13);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(190,210,236);
+  doc.text('FINANCEMENT PRO & IMMOBILIER',14,19);
+  // badge Document interne
+  const bw=40; doc.setFillColor(219,153,39); doc.roundedRect(w-14-bw,4.5,bw,6,1,1,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+  doc.text('DOCUMENT INTERNE', w-14-bw/2, 8.7, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text(sub,w-14,18,{align:'right'});
+}
+function pdfFooter(doc){
+  const w=doc.internal.pageSize.getWidth(), h=doc.internal.pageSize.getHeight();
+  doc.setDrawColor(221,219,217); doc.setLineWidth(0.2); doc.line(14,h-11,w-14,h-11);
+  doc.setFontSize(7); doc.setTextColor(115,121,127); doc.setFont('helvetica','italic');
+  doc.text('Note : Ces informations sont non-contractuelles. Seuls les établissements bancaires sont en mesure de publier de vraies offres.',14,h-7);
+  doc.setFont('helvetica','normal');
+  doc.text('BBS Finance — édité le '+new Date().toLocaleDateString('fr-FR')+'   ·   page '+doc.internal.getNumberOfPages(),14,h-3.5);
+}
+
+document.getElementById('pdfSimBtn').addEventListener('click',()=>{
+  if(!lastResults) return;
+  const {jsPDF}=window.jspdf; const doc=new jsPDF('l','mm','a4');
+  pdfHeader(doc,'Synthèse de simulation');
+  const cs=x=>(''+x).replace(/[\u202F\u00A0]/g,' ');
+  let y=38;
+  doc.setTextColor(28,37,48); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text('Détail des mensualités',14,y);
+
+  const anyIns=lastResults.some(c=>c.sum.hasIns);
+
+  // Tableau principal : montant/durée/taux + détail des mensualités par phase
+  const head=[['Prêt','Type','Montant','Durée','Taux','Période','Mensualité HA']];
+  if(anyIns) head[0].push('Mensualité AC');
+  const body=[];
+  lastResults.forEach(c=>{
+    const l=c.loan; const ph=phaseLines(l,c.sched.rows);
+    ph.forEach((p,k)=>{
+      const row=[];
+      if(k===0){
+        const mid={valign:'middle'};
+        row.push({content:l.name,rowSpan:ph.length,styles:Object.assign({halign:'left',fontStyle:'bold',textColor:[1,76,153]},mid)});
+        row.push({content:(l.type==='relais'?'Relais':'Classique')+(l.reverse?' (montant calculé)':''),rowSpan:ph.length,styles:Object.assign({halign:'left'},mid)});
+        row.push({content:eur0Pdf(l.capital),rowSpan:ph.length,styles:mid});
+        row.push({content:durTxt(c.sum.months),rowSpan:ph.length,styles:mid});
+        row.push({content:cs(l.rate.toLocaleString('fr-FR'))+' %',rowSpan:ph.length,styles:mid});
+      }
+      row.push({content:cs(p.per)+(p.lab?'\n'+p.lab+(p.sub?' · '+p.sub:''):''),styles:{halign:'left',fontSize:8}});
+      row.push(cs(p.haTxt));
+      if(anyIns) row.push(cs(p.acTxt||'—'));
+      body.push(row);
+    });
+  });
+  // Total des mensualités cumulées (si plusieurs prêts)
+  if(lastResults.length>1){
+    const segs=combinedMensualites(lastResults); const gold=[255,248,236];
+    segs.forEach((sg,k)=>{
+      const row=[];
+      if(k===0) row.push({content:'Total mensualités — tous prêts',colSpan:5,rowSpan:segs.length,styles:{halign:'left',fontStyle:'bold',textColor:[179,83,29],valign:'middle',fillColor:gold}});
+      row.push({content:'Mois '+sg.m1+(sg.m1===sg.m2?'':' à '+sg.m2),styles:{halign:'left',fillColor:gold}});
+      row.push({content:cs(eur(sg.ha)),styles:{fillColor:gold,fontStyle:'bold'}});
+      if(anyIns) row.push({content:cs(eur(sg.ac)),styles:{fillColor:gold,fontStyle:'bold'}});
+      body.push(row);
+    });
+  }
+  doc.autoTable({
+    startY:y+6, head, body, theme:'grid',
+    headStyles:{fillColor:[1,76,153],textColor:255,fontStyle:'bold',fontSize:8.5,halign:'right',cellPadding:2},
+    bodyStyles:{fontSize:8.5,halign:'right',cellPadding:2},
+    columnStyles:{0:{halign:'left'},1:{halign:'left'},5:{halign:'left'}},
+    margin:{top:30,left:14,right:14,bottom:16},
+    didDrawPage:()=>{ pdfHeader(doc,'Synthèse de simulation'); }
+  });
+
+  // Récapitulatif coût total
+  let yy=doc.lastAutoTable.finalY+9;
+  if(yy>178){doc.addPage();pdfHeader(doc,'Synthèse de simulation');yy=40;}
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(179,83,29);
+  doc.text('Coût total'+(lastResults.length>1?' par prêt':''),14,yy);
+  const chead=[['Prêt','Coût du crédit (HA)']]; if(anyIns) chead[0].push('Coût de l\'assurance'); chead[0].push('Total payé');
+  const cbody=[]; let tC=0,tI=0,tP=0;
+  lastResults.forEach(c=>{
+    const s=c.sum; const tp=c.sched.rows.reduce((a,r)=>a+r.payAC,0); tC+=s.totalInterest;tI+=s.totalIns;tP+=tp;
+    const r=[c.loan.name, eurPdf(s.totalInterest)]; if(anyIns) r.push(s.hasIns?eurPdf(s.totalIns):'—'); r.push(eurPdf(tp)); cbody.push(r);
+  });
+  if(lastResults.length>1){const r=['TOTAL',eurPdf(tC)];if(anyIns)r.push(eurPdf(tI));r.push(eurPdf(tP));cbody.push(r);}
+  doc.autoTable({
+    startY:yy+3, head:chead, body:fixSp(cbody), theme:'grid',
+    headStyles:{fillColor:[1,76,153],textColor:255,fontStyle:'bold',fontSize:8.5,halign:'right',cellPadding:2},
+    bodyStyles:{fontSize:9,halign:'right',cellPadding:2.2},
+    columnStyles:{0:{halign:'left',fontStyle:'bold',textColor:[1,76,153]}},
+    didParseCell:d=>{ if(d.row.raw[0]==='TOTAL'){d.cell.styles.fillColor=[241,241,241];d.cell.styles.fontStyle='bold';} },
+    margin:{top:30,left:14,right:14,bottom:16}
+  });
+  yy=doc.lastAutoTable.finalY+10;
+
+  // Paramètres saisis par prêt
+  lastResults.forEach(c=>{
+    const l=c.loan;
+    if(yy>175){doc.addPage();pdfHeader(doc,'Synthèse de simulation');yy=40;}
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(1,76,153);
+    doc.text('Paramètres — '+l.name, 14, yy);
+    const det=[];
+    det.push([l.reverse?'Montant calculé':'Montant', eur0Pdf(l.capital)]);
+    if(l.reverse) det.push(['Mensualité cible (HA)', eurPdf(l.targetPay)]);
+    det.push(['Durée saisie', durTxt(l.months)]);
+    det.push(['Taux d\'intérêt', cs(l.rate.toLocaleString('fr-FR'))+' %']);
+    if(l.insRate) det.push(['Assurance', cs(l.insRate.toLocaleString('fr-FR'))+' % sur '+(l.insBase==='crd'?'capital restant dû':'capital initial')]);
+    if(l.differe.type!=='none') det.push(['Différé', (l.differe.type==='partiel'?'Partiel (intérêts seuls)':'Total (intérêts capitalisés)')+' — '+l.differe.months+' mois']);
+    (l.events||[]).forEach(e=>{
+      if(e.type==='rembAnticipe') det.push(['Remb. anticipé', eur0Pdf(e.amount)+' au mois '+e.month+' ('+(e.mode==='mensualite'?'baisse mensualité':'baisse durée')+')']);
+      if(e.type==='report') det.push(['Report d\'échéance', e.months+' mois à partir du mois '+e.month]);
+      if(e.type==='modulation') det.push(['Modulation', e.mode==='extend'?('allongement de '+e.extend+' mois au mois '+e.month):('mensualité '+eurPdf(e.newPayment)+' au mois '+e.month)]);
+    });
+    doc.autoTable({
+      startY:yy+3, body:fixSp(det), theme:'plain',
+      bodyStyles:{fontSize:9,textColor:[60,60,60],cellPadding:1.4},
+      columnStyles:{0:{fontStyle:'bold',cellWidth:60,textColor:[115,121,127]}},
+      margin:{top:30,left:14,right:14,bottom:16}
+    });
+    yy=doc.lastAutoTable.finalY+8;
+  });
+
+  for(let p=1;p<=doc.internal.getNumberOfPages();p++){doc.setPage(p);pdfFooter(doc);}
+  doc.save('BBS_simulation_'+stamp()+'.pdf');
+});
+
+document.getElementById('pdfAmortBtn').addEventListener('click',()=>{
+  if(!lastResults) return;
+  const {jsPDF}=window.jspdf; const doc=new jsPDF('p','mm','a4');
+  let first=true;
+  lastResults.forEach(c=>{
+    const l=c.loan, hasIns=l.insRate>0;
+    if(!first) doc.addPage();
+    first=false;
+    pdfHeader(doc,'Tableau d\'amortissement');
+    doc.setTextColor(1,76,153);doc.setFont('helvetica','bold');doc.setFontSize(11.5);
+    doc.text((l.name+' — '+eur0Pdf(l.capital)+' sur '+durTxt(c.sum.months)).replace(/[\u202F\u00A0]/g,' '),14,37);
+
+    // index des lignes correspondant à un événement (pour surlignage)
+    const evtIdx=new Set();
+    c.sched.rows.forEach((r,k)=>{ if(r.note) evtIdx.add(k); });
+
+    let head, colStyles;
+    if(hasIns){
+      head=[['N°','Mens. HA','Assurance','Mens. AC','Intérêts','Capital','Capital restant dû']];
+      colStyles={0:{halign:'center',cellWidth:12},1:{cellWidth:28},2:{cellWidth:26},3:{cellWidth:28},4:{cellWidth:28},5:{cellWidth:28},6:{cellWidth:'auto'}};
+    }else{
+      head=[['N°','Mensualité HA','Intérêts','Capital','Capital restant dû']];
+      colStyles={0:{halign:'center',cellWidth:14},1:{cellWidth:36},2:{cellWidth:34},3:{cellWidth:34},4:{cellWidth:'auto'}};
+    }
+
+    const body=fixSp(c.sched.rows.map(r=>{
+      const row=[String(r.m), eurPdf(r.payHA)];
+      if(hasIns){row.push(eurPdf(r.ins),eurPdf(r.payAC));}
+      row.push(eurPdf(r.interest),eurPdf(r.capital),eurPdf(r.crd));
+      return row;
+    }));
+
+    doc.autoTable({
+      startY:41, head, body, theme:'grid',
+      headStyles:{fillColor:[1,76,153],textColor:255,fontSize:7.5,fontStyle:'bold',halign:'right',cellPadding:{top:1.2,bottom:1.2,left:2,right:2}},
+      bodyStyles:{fontSize:6.5,halign:'right',cellPadding:{top:0.6,bottom:0.6,left:2,right:2},lineColor:[228,228,228],lineWidth:0.1},
+      columnStyles:colStyles,
+      didParseCell:d=>{ if(d.section==='body' && evtIdx.has(d.row.index)){d.cell.styles.fillColor=[255,244,230];} },
+      margin:{top:30,bottom:16,left:12,right:12},
+      rowPageBreak:'auto',
+      didDrawPage:()=>{ pdfHeader(doc,'Tableau d\'amortissement'); }
+    });
+
+    // Récap coût en bas du tableau
+    const totInt=c.sched.rows.reduce((s,r)=>s+r.interest,0);
+    const totIns=c.sched.rows.reduce((s,r)=>s+r.ins,0);
+    const totPaid=c.sched.rows.reduce((s,r)=>s+r.payAC,0);
+    let fy=doc.lastAutoTable.finalY;
+    if(fy>270){doc.addPage();pdfHeader(doc,'Tableau d\'amortissement');fy=34;}
+    doc.setFillColor(241,241,241);
+    doc.rect(12,fy+3,doc.internal.pageSize.getWidth()-24,9,'F');
+    doc.setTextColor(1,76,153);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    let recap='Coût total du crédit (HA) : '+eurPdf(totInt);
+    if(hasIns) recap+='     Coût total de l\'assurance : '+eurPdf(totIns);
+    recap+='     Total payé : '+eurPdf(totPaid);
+    doc.text(recap.replace(/[\u202F\u00A0]/g,' '),16,fy+9);
+  });
+  for(let p=1;p<=doc.internal.getNumberOfPages();p++){doc.setPage(p);pdfFooter(doc);}
+  doc.save('BBS_amortissement_'+stamp()+'.pdf');
+});
+
+function stamp(){const d=new Date();return d.toISOString().slice(0,10).replace(/-/g,'');}
+</script>
+</body>
+</html>
